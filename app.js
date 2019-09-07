@@ -208,7 +208,7 @@ app.get("/submit", function(req,res){
   if(req.isAuthenticated()){
    res.render("submit");
  } else {
-   res.redirect("/");
+   res.redirect("/login");
  }
 });
 
