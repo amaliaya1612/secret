@@ -39,7 +39,8 @@ const userSchema = new mongoose.Schema({
   email: String,
   password: String,
   googleId: String,
-  facebookId: String
+  facebookId: String,
+  secret: String
 });
 
 userSchema.plugin(passportLocalMongoose);
@@ -131,12 +132,15 @@ app.get('/auth/facebook/secrets',
 
 
 app.get("/secrets", function(req, res) {
-  if (req.isAuthenticated()) {
-    res.render("secrets");
+User.find({"secret": {$ne:null}}, function(err, foundUsers){
+  if(err){
+    console.log(err);
   } else {
-    res.redirect("/login");
+    if(foundUsers){
+      res.render("secrets", {userWithSecret : foundUsers} );
+    }
   }
-
+});
 });
 
 
@@ -194,6 +198,39 @@ app.get("/logout", function(req, res) {
   req.logout();
   res.redirect("/");
 });
+
+
+
+
+// submit
+
+app.get("/submit", function(req,res){
+  if(req.isAuthenticated()){
+   res.render("submit");
+ } else {
+   res.redirect("/");
+ }
+});
+
+app.post("/submit", function(req,res){
+const submittedSecret = req.body.secret;
+console.log(req.user);
+
+User.findById(req.user._id, function(err,foundUser){
+  if (err){
+    console.log(err);
+  } else {
+    if (foundUser){
+      foundUser.secret = submittedSecret;
+      foundUser.save(function(){
+        res.redirect("/secrets");
+      });
+    }
+  }
+});
+
+});
+
 
 app.listen(3000, function() {
   console.log("Server started on port 3000.");
